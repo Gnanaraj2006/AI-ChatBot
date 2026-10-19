@@ -4,8 +4,8 @@
 [![Docker](https://img.shields.io/badge/Docker-20+-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.0_Flash-8E75C2.svg?logo=google&logoColor=white)](https://aistudio.google.com/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991.svg?logo=openai&logoColor=white)](https://platform.openai.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Gnanaraj2006/AI-ChatBot)
 
 > A modern, production-ready, containerized AI assistant designed for students and educators. Upload lecture slides, textbooks, research papers, and notes (PDF, DOCX, TXT, MD) to query them with **Retrieval-Augmented Generation (RAG)**, exact page citations, interactive 3D flashcards, and automated exam practice quizzes.
 
@@ -135,6 +135,7 @@ Open **`http://localhost:8000`** in your browser.
 
 | Cloud Provider | Recommended Service | Deployment Command / Guide |
 |---|---|---|
+| **Netlify** | Web Client / Static Jamstack | Connect repo & publish `public` or 1-Click Deploy button |
 | **Google Cloud** | Cloud Run (Serverless) | `gcloud run deploy --source . --port 8000` |
 | **AWS** | EC2 + Docker Compose | See [DEPLOYMENT.md](file:///c:/Users/krish/Desktop/AI%20ChatBot/DEPLOYMENT.md#3-aws-deployment) |
 | **AWS** | ECS Fargate | Containerized task definition mapping port 8000 |
