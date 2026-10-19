@@ -82,8 +82,8 @@ class LLMService:
         model_name: Optional[str]
     ) -> Tuple[str, str]:
         model_id = model_name or settings.GEMINI_MODEL
-        if "gemini-1.5" in model_id or "gemini-2.0" in model_id:
-            model_id = "gemini-2.5-flash"
+        if not model_id or any(old in model_id for old in ["gemini-1.5", "gemini-2.0", "gemini-2.5"]):
+            model_id = "gemini-3.8-flash"
 
         # 1. Try modern google.genai SDK
         try:

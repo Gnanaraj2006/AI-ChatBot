@@ -53,10 +53,12 @@ class EmbeddingsService:
         return results[0] if results else [0.0] * 256
 
     def _embed_gemini(self, texts: List[str], api_key: str) -> List[List[float]]:
+        model = settings.GEMINI_EMBEDDING_MODEL
+        if not model or "text-embedding-004" in model:
+            model = "gemini-embedding-001"
         try:
             from google import genai
             client = genai.Client(api_key=api_key)
-            model = settings.GEMINI_EMBEDDING_MODEL
             embeddings = []
             for text in texts:
                 truncated = text[:4000]
