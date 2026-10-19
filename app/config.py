@@ -18,8 +18,8 @@ class Settings(BaseSettings):
 
     # Google Gemini
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-1.5-flash"
-    GEMINI_EMBEDDING_MODEL: str = "models/text-embedding-004"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-001"
 
     # OpenAI
     OPENAI_API_KEY: str = ""

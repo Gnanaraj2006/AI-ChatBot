@@ -53,21 +53,33 @@ class EmbeddingsService:
         return results[0] if results else [0.0] * 256
 
     def _embed_gemini(self, texts: List[str], api_key: str) -> List[List[float]]:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-
-        model = settings.GEMINI_EMBEDDING_MODEL
-        embeddings = []
-        for text in texts:
-            # Truncate text if excessively long for single embedding
-            truncated = text[:4000]
-            res = genai.embed_content(
-                model=model,
-                content=truncated,
-                task_type="retrieval_document"
-            )
-            embeddings.append(res['embedding'])
-        return embeddings
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            model = settings.GEMINI_EMBEDDING_MODEL
+            embeddings = []
+            for text in texts:
+                truncated = text[:4000]
+                res = client.models.embed_content(model=model, contents=truncated)
+                embeddings.append(res.embeddings[0].values)
+            return embeddings
+        except Exception as e:
+            try:
+                import google.generativeai as legacy_genai
+                legacy_genai.configure(api_key=api_key)
+                model = settings.GEMINI_EMBEDDING_MODEL
+                embeddings = []
+                for text in texts:
+                    truncated = text[:4000]
+                    res = legacy_genai.embed_content(
+                        model=model,
+                        content=truncated,
+                        task_type="retrieval_document"
+                    )
+                    embeddings.append(res['embedding'])
+                return embeddings
+            except Exception as legacy_err:
+                raise RuntimeError(f"Gemini embedding failed: {e}; Legacy fallback error: {legacy_err}")
 
     def _embed_openai(self, texts: List[str], api_key: str) -> List[List[float]]:
         from openai import OpenAI

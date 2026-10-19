@@ -1,0 +1,30 @@
+# Environments and Secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Netlify
+.netlify/
+
+# Chroma DB and Local Uploads
+data/chroma_db/
+data/uploads/*
+!data/uploads/.gitkeep
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

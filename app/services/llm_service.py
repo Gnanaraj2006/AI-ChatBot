@@ -81,24 +81,45 @@ class LLMService:
         api_key: str,
         model_name: Optional[str]
     ) -> Tuple[str, str]:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-
         model_id = model_name or settings.GEMINI_MODEL
-        model = genai.GenerativeModel(
-            model_name=model_id,
-            system_instruction=system_prompt
-        )
+        if "gemini-1.5" in model_id or "gemini-2.0" in model_id:
+            model_id = "gemini-2.5-flash"
 
-        chat_history = []
-        if history:
-            for msg in history[-6:]:
-                role = "user" if msg.get("role") == "user" else "model"
-                chat_history.append({"role": role, "parts": [msg.get("content", "")]})
+        # 1. Try modern google.genai SDK
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            full_contents = []
+            if history:
+                for msg in history[-6:]:
+                    full_contents.append(f"{msg.get('role', 'user')}: {msg.get('content', '')}")
+            full_contents.append(f"user: {user_prompt}")
+            combined_prompt = "\n\n".join(full_contents)
 
-        chat = model.start_chat(history=chat_history)
-        resp = chat.send_message(user_prompt)
-        return resp.text, model_id
+            resp = client.models.generate_content(
+                model=model_id,
+                contents=combined_prompt,
+                config={"system_instruction": system_prompt}
+            )
+            return resp.text, model_id
+        except Exception as e:
+            try:
+                import google.generativeai as legacy_genai
+                legacy_genai.configure(api_key=api_key)
+                model = legacy_genai.GenerativeModel(
+                    model_name=model_id,
+                    system_instruction=system_prompt
+                )
+                chat_history = []
+                if history:
+                    for msg in history[-6:]:
+                        role = "user" if msg.get("role") == "user" else "model"
+                        chat_history.append({"role": role, "parts": [msg.get("content", "")]})
+                chat = model.start_chat(history=chat_history)
+                resp = chat.send_message(user_prompt)
+                return resp.text, model_id
+            except Exception as legacy_err:
+                raise RuntimeError(f"Gemini generation failed: {e}; Legacy error: {legacy_err}")
 
     def _complete_openai(
         self,
