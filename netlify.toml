@@ -1,0 +1,29 @@
+# ========================================================
+# StudySphere AI - Netlify Configuration
+# ========================================================
+
+[build]
+  publish = "public"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Security & Cache Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Single Page Application routing fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

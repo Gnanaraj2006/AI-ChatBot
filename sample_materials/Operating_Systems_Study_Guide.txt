@@ -1,0 +1,43 @@
+OPERATING SYSTEMS: CORE CONCEPTS & EXAM REVISION GUIDE
+
+1. PROCESSES AND THREADS
+A process is an instance of a program in execution. It includes the program counter, stack, data section, and heap.
+The Process Control Block (PCB) contains critical metadata: Process ID (PID), process state, program counter, CPU registers, CPU scheduling information, memory management information, and I/O status information.
+Process states: New, Ready, Running, Waiting (Blocked), and Terminated.
+A thread is the smallest unit of execution within a process, often called a lightweight process.
+Key difference: Threads within the same process share the same code segment, data segment, and open files, but maintain their own unique thread ID, program counter, register set, and stack.
+Context switching between threads is significantly faster than between processes because virtual memory mappings and page tables do not need to be switched.
+
+2. CPU SCHEDULING ALGORITHMS
+The CPU scheduler selects from among the processes in memory that are ready to execute.
+- First-Come, First-Served (FCFS): Non-preemptive. Suffers from the Convoy Effect, where short processes get trapped waiting behind one CPU-heavy process.
+- Shortest-Job-First (SJF): Selects the process with the shortest next CPU burst. Optimal for minimizing average waiting time, but difficult to predict actual future burst times.
+- Round Robin (RR): Preemptive scheduling designed for time-sharing systems. Each process gets a small unit of CPU time (time quantum, typically 10-100 ms). If time quantum is too large, RR degrades to FCFS; if too small, context-switch overhead dominates.
+- Priority Scheduling: CPU is allocated to the process with highest priority. Prone to Starvation (indefinite blocking), which is solved by Aging (gradually increasing the priority of processes that wait in the system for a long time).
+
+3. SYNCHRONIZATION AND DEADLOCKS
+A Race Condition occurs when multiple processes access and manipulate shared data concurrently, and the outcome depends on the particular order of execution.
+The Critical Section is the code segment where shared resources are accessed. A valid solution must satisfy:
+1. Mutual Exclusion: If process Pi is executing in its critical section, no other process can execute in their critical section.
+2. Progress: If no process is executing in its critical section, only processes wishing to enter can participate in deciding who enters next.
+3. Bounded Waiting: A bound must exist on the number of times other processes are allowed to enter their critical sections after a process has made a request.
+
+Four Necessary Conditions for Deadlock (Coffman Conditions):
+1. Mutual Exclusion: At least one resource must be held in a non-shareable mode.
+2. Hold and Wait: A process must be holding at least one resource and waiting to acquire additional resources.
+3. No Preemption: Resources cannot be preempted; a resource can only be released voluntarily by the process holding it.
+4. Circular Wait: A closed chain of processes exists such that each process holds at least one resource needed by the next process.
+Deadlock Avoidance: Banker's Algorithm by Edsger Dijkstra tests for safety by simulating the allocation of predetermined maximum possible amounts of all resources before granting an allocation.
+
+4. MEMORY MANAGEMENT AND VIRTUAL MEMORY
+Virtual Memory separates user logical memory from physical memory. It allows execution of processes not completely in memory.
+Paging is a memory management scheme that eliminates the need for contiguous physical memory.
+- Logical address is divided into Page Number (p) and Page Offset (d).
+- Page table maps logical pages to physical frames.
+- Translation Lookaside Buffer (TLB) is a fast associative hardware cache for page table entries.
+Page Fault: Occurs when a program accesses a page mapped in address space but not currently loaded in physical RAM. The OS traps to kernel mode, fetches the missing page from disk swap space, updates the page table, and restarts the instruction.
+Page Replacement Algorithms:
+- FIFO (First-In-First-Out): Replaces the oldest page. Suffers from Belady's Anomaly (more page frames can cause more page faults).
+- Optimal (OPT): Replaces the page that will not be used for the longest period of time. Theoretically optimal but impossible in practice.
+- LRU (Least Recently Used): Replaces the page that has not been used for the longest period of time. Good approximation of OPT, implemented using stack or counter.
+Thrashing: A state where the CPU spends more time swapping pages in and out of disk than executing user instructions. Occurs when sum of working set sizes exceeds total physical memory.

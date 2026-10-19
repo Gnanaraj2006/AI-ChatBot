@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Docker-enabled AI Chatbot for Study Material Q&A on Cloud with multi-provider RAG, interactive flashcards, practice quizzes, and exact source citations.">
+  <meta name="theme-color" content="#0a0e17">
+  <title>StudySphere AI - Docker-Enabled Study Material Q&A on Cloud</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX CSS for LaTeX Math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+  <!-- Highlight.js CSS for Code syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+  <!-- Ambient Glow Orbs -->
+  <div class="ambient-glow" aria-hidden="true">
+    <div class="ambient-orb-1"></div>
+    <div class="ambient-orb-2"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- ====================================================================
+         1. Left Sidebar
+         ==================================================================== -->
+    <aside class="sidebar" id="app-sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-header">
+        <div class="brand-wrapper">
+          <div class="brand-icon" aria-hidden="true">Ω</div>
+          <div class="brand-info">
+            <h1 class="brand-title">StudySphere</h1>
+            <div class="brand-subtitle">
+              <span class="pulsing-dot online" aria-hidden="true"></span>
+              <span>Cloud AI Tutor</span>
+            </div>
+          </div>
+        </div>
+        <button id="theme-toggle-btn" class="btn btn-secondary btn-icon" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          🌙
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="sidebar-nav" aria-label="App Modes">
+        <button class="nav-tab active" data-target="chat" id="tab-nav-chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Chat Q&A</span>
+        </button>
+        <button class="nav-tab" data-target="flashcards" id="tab-nav-flashcards">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          <span>Flashcards</span>
+        </button>
+        <button class="nav-tab" data-target="quiz" id="tab-nav-quiz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span>Practice Quiz</span>
+        </button>
+        <button class="nav-tab" data-target="summary" id="tab-nav-summary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>Revision Guide</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Actions -->
+      <div class="sidebar-section-title">
+        <span>Study Materials</span>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn btn-primary" id="open-upload-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>Upload Notes / PDF</span>
+        </button>
+        <button class="btn btn-secondary" id="load-samples-btn" title="Instantly load pre-packaged OS and Machine Learning study guides">
+          <span>⚡</span>
+          <span>Load Sample Guides</span>
+        </button>
+      </div>
+
+      <!-- Document List Container -->
+      <div class="doc-list-container" id="sidebar-doc-list" role="list">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Sidebar Footer -->
+      <footer class="sidebar-footer">
+        <div class="status-pill">
+          <span class="pulsing-dot online" aria-hidden="true"></span>
+          <span id="sys-telemetry-text">Loading vector index...</span>
+        </div>
+        <button class="btn btn-secondary btn-icon" id="open-settings-btn" title="Model & API Key Settings" aria-label="Settings">
+          ⚙️
+        </button>
+      </footer>
+    </aside>
+
+    <!-- ====================================================================
+         2. Main Application Workspace
+         ==================================================================== -->
+    <main class="main-content" id="main-content">
+      <!-- Top Application Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <!-- Study Mode Pills -->
+          <div class="study-modes-pills" role="radiogroup" aria-label="Study Persona Mode">
+            <button class="mode-pill active" data-mode="qa" id="mode-pill-qa">💬 Deep Q&A</button>
+            <button class="mode-pill" data-mode="eli5" id="mode-pill-eli5">🐣 ELI5 Simple</button>
+            <button class="mode-pill" data-mode="exam_prep" id="mode-pill-exam">🎯 Exam Prep</button>
+            <button class="mode-pill" data-mode="summary" id="mode-pill-summary">📑 Summary</button>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Document Filter Dropdown -->
+          <select class="select-custom" id="doc-filter-select" aria-label="Filter documents">
+            <option value="all">📚 All Indexed Materials</option>
+          </select>
+
+          <!-- Status Badges -->
+          <span class="badge badge-cyan" id="active-provider-pill">GEMINI</span>
+          <span class="badge badge-emerald" id="docker-status-pill">Local Host</span>
+        </div>
+      </header>
+
+      <!-- Panel 1: Chat Q&A View -->
+      <section class="view-panel active" id="panel-chat" aria-label="Chat Q&A Interface">
+        <div class="chat-messages-container" id="chat-messages">
+          <!-- Welcome Screen Hero -->
+          <div class="welcome-hero" id="welcome-hero">
+            <div class="hero-avatar" aria-hidden="true">🎓</div>
+            <h2>What are you studying today?</h2>
+            <p>Ask questions about your uploaded textbooks, notes, and research papers with verified semantic citations and instant answers.</p>
+
+            <div class="suggestion-chips">
+              <div class="suggestion-card" data-prompt="Explain the difference between a Process and a Thread with examples.">
+                <div class="chip-title">Process vs Thread</div>
+                <div class="chip-desc">Compare execution context, memory sharing, and switching overhead.</div>
+              </div>
+              <div class="suggestion-card" data-prompt="What are the 4 Coffman conditions required for a Deadlock?">
+                <div class="chip-title">Deadlock Conditions</div>
+                <div class="chip-desc">Review Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait.</div>
+              </div>
+              <div class="suggestion-card" data-prompt="Explain the Bias-Variance tradeoff in Machine Learning.">
+                <div class="chip-title">Bias-Variance Tradeoff</div>
+                <div class="chip-desc">Understand underfitting, overfitting, and regularization solutions.</div>
+              </div>
+              <div class="suggestion-card" data-prompt="What is the difference between Precision and Recall?">
+                <div class="chip-title">Evaluation Metrics</div>
+                <div class="chip-desc">Learn when to optimize for Precision vs Sensitivity/Recall.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Dock -->
+        <div class="chat-input-area">
+          <form class="input-dock" id="chat-form" onsubmit="return false;">
+            <button type="button" class="btn btn-secondary btn-icon" id="mic-btn" title="Voice Input (Speech-to-Text)" aria-label="Voice Input">
+              🎙️
+            </button>
+            <textarea
+              id="chat-input"
+              class="chat-textarea"
+              placeholder="Ask a question about your study materials... (Enter to send, Shift+Enter for new line)"
+              rows="1"
+            ></textarea>
+            <button type="button" class="btn btn-primary btn-icon" id="send-btn" title="Send Message" aria-label="Send Message">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Panel 2: Flashcards View -->
+      <section class="view-panel" id="panel-flashcards" aria-label="Flashcards Study Tool">
+        <div class="study-tool-container">
+          <div class="tool-header-card">
+            <div>
+              <h3>Active-Recall Flashcards</h3>
+              <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;">Test your memory with dynamic interactive 3D flip cards generated from your notes.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input type="text" id="fc-topic-input" class="form-input" style="width:200px;" placeholder="Optional topic focus...">
+              <select id="fc-count-select" class="select-custom">
+                <option value="5">5 Cards</option>
+                <option value="8">8 Cards</option>
+                <option value="12">12 Cards</option>
+              </select>
+              <button class="btn btn-primary" id="gen-flashcards-btn">✨ Generate Flashcards</button>
+            </div>
+          </div>
+
+          <!-- 3D Card Flip Stage -->
+          <div class="flashcard-stage" id="flashcard-stage" title="Click or press Spacebar to flip card">
+            <div class="flashcard-inner" id="flashcard-inner">
+              <!-- Front Face -->
+              <div class="card-face card-front">
+                <div class="card-header-bar">
+                  <span class="badge badge-violet" id="fc-category-badge">Core Concept</span>
+                  <span id="fc-counter">1 / 1</span>
+                </div>
+                <div class="card-body-content">
+                  <div class="card-title" id="fc-front-text">Click "Generate Flashcards" above to create study cards from your notes.</div>
+                </div>
+                <div class="card-hint">🔄 Click or press Space to flip</div>
+              </div>
+
+              <!-- Back Face -->
+              <div class="card-face card-back">
+                <div class="card-header-bar">
+                  <span class="badge badge-cyan">Answer & Analysis</span>
+                  <span class="badge badge-amber" id="fc-source-badge">Study Material</span>
+                </div>
+                <div class="card-body-content">
+                  <div class="card-text" id="fc-back-text">Detailed definition, formula, and explanation will appear here.</div>
+                </div>
+                <div class="card-hint">🔄 Click to flip back</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls & Mastery Progress -->
+          <div class="flashcard-controls">
+            <button class="btn btn-secondary btn-icon" id="fc-prev-btn" title="Previous Card (Left Arrow)">◀</button>
+            <button class="btn btn-danger" id="fc-review-btn">🔁 Needs Practice</button>
+            <button class="btn btn-primary" id="fc-mastered-btn" style="background:var(--grad-emerald);">✅ Mastered</button>
+            <button class="btn btn-secondary btn-icon" id="fc-next-btn" title="Next Card (Right Arrow)">▶</button>
+          </div>
+
+          <div style="width:100%;max-width:480px;margin-top:20px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+              <span>Mastery Progress</span>
+              <span id="fc-mastery-text">0 Mastered (0%)</span>
+            </div>
+            <div style="width:100%;height:8px;background:rgba(255,255,255,0.08);border-radius:var(--radius-full);overflow:hidden;">
+              <div id="fc-mastery-bar" style="width:0%;height:100%;background:var(--grad-emerald);transition:width 0.3s ease;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel 3: Practice Quiz View -->
+      <section class="view-panel" id="panel-quiz" aria-label="Practice Quiz Interface">
+        <div class="study-tool-container">
+          <div class="tool-header-card">
+            <div>
+              <h3>Exam Readiness Quiz</h3>
+              <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;">Challenge yourself with AI-generated multiple choice questions with instant explanations.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <select id="quiz-diff-select" class="select-custom">
+                <option value="medium">Medium Difficulty</option>
+                <option value="easy">Easy (Fundamentals)</option>
+                <option value="hard">Hard (Advanced)</option>
+              </select>
+              <select id="quiz-count-select" class="select-custom">
+                <option value="4">4 Questions</option>
+                <option value="6">6 Questions</option>
+                <option value="8">8 Questions</option>
+              </select>
+              <button class="btn btn-primary" id="gen-quiz-btn">🎯 Generate Exam Quiz</button>
+            </div>
+          </div>
+
+          <div id="quiz-score-banner" style="display:none;width:100%;padding:14px 20px;margin-bottom:18px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius-md);display:none;justify-content:space-between;align-items:center;">
+            <strong id="quiz-score-text" style="color:#34d399;">Score: 0 / 0</strong>
+            <span style="font-size:12px;color:var(--text-secondary);">Click any option to reveal instantaneous answer feedback</span>
+          </div>
+
+          <div class="quiz-grid" id="quiz-questions-list">
+            <div style="text-align:center;padding:50px;color:var(--text-muted);">
+              Click <strong>Generate Exam Quiz</strong> above to test your knowledge!
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel 4: Revision Guide View -->
+      <section class="view-panel" id="panel-summary" aria-label="Revision Guide Interface">
+        <div class="study-tool-container">
+          <div class="tool-header-card">
+            <div>
+              <h3>Comprehensive Revision Guide</h3>
+              <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;">High-yield study summaries, core takeaways, and exam tips.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input type="text" id="summary-topic-input" class="form-input" style="width:240px;" placeholder="Specific chapter or topic focus...">
+              <button class="btn btn-primary" id="gen-summary-btn">📑 Generate Study Guide</button>
+            </div>
+          </div>
+
+          <div id="summary-results-container" style="display:none;width:100%;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h2 id="summary-title" style="font-size:20px;">Study Guide</h2>
+              <button class="btn btn-secondary" id="copy-summary-btn">📋 Copy Markdown</button>
+            </div>
+
+            <!-- Key Takeaways Box -->
+            <div style="background:rgba(79,172,254,0.08);border:1px solid rgba(79,172,254,0.25);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;">
+              <h4 style="color:var(--accent-cyan);margin-bottom:10px;">⭐ Core Takeaways to Memorize</h4>
+              <ul id="summary-takeaways-list" style="margin-left:20px;display:flex;flex-direction:column;gap:6px;"></ul>
+            </div>
+
+            <!-- Exam Tips Alert -->
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;">
+              <h4 style="color:var(--accent-amber);margin-bottom:10px;">💡 Professor's Exam Tips & Traps</h4>
+              <ul id="summary-tips-list" style="margin-left:20px;display:flex;flex-direction:column;gap:6px;"></ul>
+            </div>
+
+            <!-- Full Markdown Content -->
+            <div class="bubble ai-bubble" id="summary-markdown-content" style="padding:28px;"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ======================================================================
+       3. Modals & Drawers
+       ====================================================================== -->
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="upload-modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="upload-modal-title">Upload Study Materials</h3>
+        <button class="btn btn-secondary btn-icon" id="close-upload-btn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="file" id="file-input" multiple accept=".pdf,.txt,.md,.markdown,.docx,.csv" style="display:none;">
+        <div class="dropzone" id="file-dropzone" tabindex="0" role="button" aria-label="Drag and drop study files here">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <h4>Drop PDF, TXT, DOCX, or MD files here</h4>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">or click anywhere to browse local documents</p>
+          <div style="margin-top:14px;">
+            <span class="badge badge-cyan">PDF</span>
+            <span class="badge badge-violet">DOCX</span>
+            <span class="badge badge-emerald">TXT</span>
+            <span class="badge badge-amber">MD</span>
+          </div>
+        </div>
+        <div id="upload-progress-status" style="margin-top:16px;display:none;font-size:13px;color:var(--text-secondary);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="settings-modal-title">AI Engine & Cloud Configuration</h3>
+        <button class="btn btn-secondary btn-icon" id="close-settings-btn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="settings-provider-select">Primary Model Provider</label>
+          <select id="settings-provider-select" class="form-input">
+            <option value="gemini">Google Gemini (Recommended - Free Tier Available)</option>
+            <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+            <option value="ollama">Ollama Local (Offline / Self-Hosted)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-gemini-key">Google Gemini API Key</label>
+          <input type="password" id="settings-gemini-key" class="form-input" placeholder="Enter Gemini key or set in .env">
+          <small style="font-size:11px;color:var(--text-muted);display:block;margin-top:4px;">
+            Get a free key from <a href="https://aistudio.google.com/" target="_blank" rel="noopener" style="color:var(--accent-cyan);">Google AI Studio</a>.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-openai-key">OpenAI API Key</label>
+          <input type="password" id="settings-openai-key" class="form-input" placeholder="Enter OpenAI key or set in .env">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-ollama-url">Ollama Base URL</label>
+          <input type="text" id="settings-ollama-url" class="form-input" placeholder="http://localhost:11434">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-backend-url">Backend Cloud API URL (Optional)</label>
+          <input type="text" id="settings-backend-url" class="form-input" placeholder="e.g. https://your-backend.onrender.com (or leave blank for same-origin)">
+          <small style="font-size:11px;color:var(--text-muted);display:block;margin-top:4px;">
+            When hosted on Netlify, connect your Docker or Cloud backend URL here.
+          </small>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+          <button class="btn btn-primary" id="save-settings-btn">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Citation Excerpt Slide-out Drawer -->
+  <aside class="citation-drawer" id="citation-drawer" aria-label="Verified Source Citation">
+    <div class="modal-header">
+      <div>
+        <h4 id="cit-file-title" style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;">Source Document</h4>
+        <span class="badge badge-cyan" id="cit-page-badge" style="margin-top:4px;">Page 1</span>
+      </div>
+      <button class="btn btn-secondary btn-icon" id="close-cit-drawer-btn" aria-label="Close citation">✕</button>
+    </div>
+    <div style="padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span style="color:var(--text-muted);">Relevance Confidence</span>
+          <span id="cit-relevance-text" style="color:var(--accent-cyan);font-weight:600;">95% Semantic Match</span>
+        </div>
+        <div style="width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:var(--radius-full);overflow:hidden;">
+          <div id="cit-relevance-bar" style="width:95%;height:100%;background:var(--grad-primary);"></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">
+        Exact Retrieved Excerpt:
+      </div>
+      <div id="cit-snippet-content" class="bubble ai-bubble" style="font-size:13.5px;line-height:1.6;font-family:var(--font-sans);white-space:pre-wrap;">
+        Excerpt text appears here.
+      </div>
+    </div>
+  </aside>
+
+  <!-- External Libraries: Marked.js, Highlight.js, KaTeX -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Application Logic -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/study_tools.js"></script>
+  <script src="/static/js/chat.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
